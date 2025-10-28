@@ -29,6 +29,12 @@ interface TaskGenerator {
   hint: string;
 }
 
+interface TimerResult {
+  correct: number;
+  wrong: number;
+  total: number;
+}
+
 const grades: Grade[] = [
   { id: 1, title: '1 класс', color: 'from-orange-400 to-orange-600' },
   { id: 2, title: '2 класс', color: 'from-purple-400 to-purple-600' },
@@ -54,10 +60,11 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
       const a = rand(1, grade * 10);
       const b = rand(1, grade * 10);
       const correct = a + b;
+      const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
       return {
         question: `Сколько будет ${a} + ${b}?`,
-        options: [correct - 2, correct - 1, correct, correct + 1].sort(() => Math.random() - 0.5).map(String),
-        correctAnswer: [correct - 2, correct - 1, correct, correct + 1].sort(() => Math.random() - 0.5).indexOf(correct),
+        options: options.map(String),
+        correctAnswer: options.indexOf(correct),
         explanation: `${a} + ${b} = ${correct}. Молодец! 🎉`,
         hint: `Попробуй посчитать на пальчиках или нарисуй ${a} кружочков и добавь ещё ${b}!`
       };
@@ -67,10 +74,11 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
       const a = rand(grade * 5, grade * 10);
       const b = rand(1, a);
       const correct = a - b;
+      const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
       return {
         question: `Сколько будет ${a} - ${b}?`,
-        options: [correct - 1, correct, correct + 1, correct + 2].sort(() => Math.random() - 0.5).map(String),
-        correctAnswer: [correct - 1, correct, correct + 1, correct + 2].sort(() => Math.random() - 0.5).indexOf(correct),
+        options: options.map(String),
+        correctAnswer: options.indexOf(correct),
         explanation: `${a} - ${b} = ${correct}. Правильно! ⭐`,
         hint: `Начни с числа ${a} и отними ${b}. Можешь считать в обратную сторону!`
       };
@@ -80,12 +88,13 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
       const a = rand(2, grade + 3);
       const b = rand(2, grade + 3);
       const correct = a * b;
+      const options = [correct - 2, correct, correct + 2, correct + 4].filter(n => n > 0).sort(() => Math.random() - 0.5);
       return {
         question: `Сколько будет ${a} × ${b}?`,
-        options: [correct - 2, correct, correct + 2, correct + 4].sort(() => Math.random() - 0.5).map(String),
-        correctAnswer: [correct - 2, correct, correct + 2, correct + 4].sort(() => Math.random() - 0.5).indexOf(correct),
+        options: options.map(String),
+        correctAnswer: options.indexOf(correct),
         explanation: `${a} × ${b} = ${correct}. Отлично! 🌟`,
-        hint: `Умножение — это когда мы складываем число ${a} сложить ${b} раз: ${Array(b).fill(a).join(' + ')} = ${correct}`
+        hint: `Умножение — это когда мы складываем число ${a} ровно ${b} раз!`
       };
     }
     
@@ -93,10 +102,11 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
       const b = rand(2, grade + 2);
       const correct = rand(2, grade + 3);
       const a = b * correct;
+      const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
       return {
         question: `Сколько будет ${a} ÷ ${b}?`,
-        options: [correct - 1, correct, correct + 1, correct + 2].sort(() => Math.random() - 0.5).map(String),
-        correctAnswer: [correct - 1, correct, correct + 1, correct + 2].sort(() => Math.random() - 0.5).indexOf(correct),
+        options: options.map(String),
+        correctAnswer: options.indexOf(correct),
         explanation: `${a} ÷ ${b} = ${correct}. Верно! 🎯`,
         hint: `Подумай: сколько раз ${b} помещается в ${a}? Или ${b} × ? = ${a}`
       };
@@ -140,13 +150,20 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
       const start = rand(1, 10);
       const seq = [start, start + step, start + step * 2, start + step * 3];
       const correct = start + step * 4;
+      const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
       return {
         question: `Какое число продолжит ряд: ${seq.join(', ')}, ?`,
-        options: [correct - 2, correct - 1, correct, correct + 1].sort(() => Math.random() - 0.5).map(String),
-        correctAnswer: [correct - 2, correct - 1, correct, correct + 1].sort(() => Math.random() - 0.5).indexOf(correct),
+        options: options.map(String),
+        correctAnswer: options.indexOf(correct),
         explanation: `Каждое число на ${step} больше: ${correct}! 📊`,
         hint: `Посмотри, на сколько увеличивается каждое число: ${seq[1]}-${seq[0]}=${step}`
       };
+    }
+    
+    case 'mixed': {
+      const mixedTopics = ['addition', 'subtraction', 'multiplication', 'division', 'geometry', 'logic', 'patterns'];
+      const randomTopic = mixedTopics[rand(0, mixedTopics.length - 1)];
+      return generateTask(randomTopic, grade);
     }
     
     default:
@@ -163,28 +180,50 @@ export default function Index() {
   const [showExplanation, setShowExplanation] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showHint, setShowHint] = useState(false);
+  const [isTimerMode, setIsTimerMode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const [timerResult, setTimerResult] = useState<TimerResult | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (selectedTopic && selectedGrade) {
+    if (selectedTopic && selectedGrade && !timerResult) {
       setCurrentTask(generateTask(selectedTopic, selectedGrade));
     }
-  }, [selectedTopic, selectedGrade]);
+  }, [selectedTopic, selectedGrade, timerResult]);
+
+  useEffect(() => {
+    if (isTimerMode && timeLeft > 0 && !timerResult) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (isTimerMode && timeLeft === 0 && !timerResult) {
+      setTimerResult({
+        correct: score,
+        wrong: totalTasks - score,
+        total: totalTasks
+      });
+    }
+  }, [isTimerMode, timeLeft, timerResult, score, totalTasks]);
 
   const handleGradeSelect = (gradeId: number) => {
     setSelectedGrade(gradeId);
     setSelectedTopic(null);
     setScore(0);
     setTotalTasks(0);
+    setIsTimerMode(false);
+    setTimeLeft(120);
+    setTimerResult(null);
   };
 
-  const handleTopicSelect = (topicId: string) => {
+  const handleTopicSelect = (topicId: string, timerMode = false) => {
     setSelectedTopic(topicId);
     setScore(0);
     setTotalTasks(0);
     setShowExplanation(false);
     setSelectedAnswer(null);
     setShowHint(false);
+    setIsTimerMode(timerMode);
+    setTimeLeft(120);
+    setTimerResult(null);
   };
 
   const handleAnswerSelect = (answerIndex: number) => {
@@ -195,20 +234,43 @@ export default function Index() {
     
     if (answerIndex === currentTask.correctAnswer) {
       setScore(score + 1);
-      toast({
-        title: '🎉 Правильно!',
-        description: currentTask.explanation,
-        className: 'bg-green-100 border-green-400'
-      });
+      
+      if (isTimerMode) {
+        toast({
+          title: '✅ Верно!',
+          description: '+1 балл',
+          className: 'bg-green-100 border-green-400'
+        });
+        setTimeout(() => {
+          handleNextTask();
+        }, 500);
+      } else {
+        toast({
+          title: '🎉 Правильно!',
+          description: currentTask.explanation,
+          className: 'bg-green-100 border-green-400'
+        });
+        setShowExplanation(true);
+      }
     } else {
-      toast({
-        title: 'Неверно',
-        description: 'Посмотри подсказку и попробуй ещё раз!',
-        variant: 'destructive'
-      });
+      if (isTimerMode) {
+        toast({
+          title: '❌ Неверно',
+          description: `Правильный ответ: ${currentTask.options[currentTask.correctAnswer]}`,
+          variant: 'destructive'
+        });
+        setTimeout(() => {
+          handleNextTask();
+        }, 500);
+      } else {
+        toast({
+          title: '❌ Неправильно',
+          description: 'Посмотри подсказку и объяснение!',
+          variant: 'destructive'
+        });
+        setShowExplanation(true);
+      }
     }
-    
-    setShowExplanation(true);
   };
 
   const handleNextTask = () => {
@@ -220,7 +282,75 @@ export default function Index() {
     }
   };
 
+  if (timerResult) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-purple-50 p-4 md:p-8">
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-2xl border-4 border-white">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <h2 className="text-4xl font-bold text-foreground mb-2">Время вышло! ⏱️</h2>
+                <p className="text-xl text-muted-foreground">Отличная работа!</p>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-6">
+                  <Icon name="Target" className="mx-auto mb-2 text-blue-600" size={32} />
+                  <div className="text-3xl font-bold text-blue-700">{timerResult.total}</div>
+                  <div className="text-sm text-blue-600">Всего</div>
+                </div>
+                <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-6">
+                  <Icon name="CheckCircle" className="mx-auto mb-2 text-green-600" size={32} />
+                  <div className="text-3xl font-bold text-green-700">{timerResult.correct}</div>
+                  <div className="text-sm text-green-600">Верно</div>
+                </div>
+                <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-xl p-6">
+                  <Icon name="XCircle" className="mx-auto mb-2 text-red-600" size={32} />
+                  <div className="text-3xl font-bold text-red-700">{timerResult.wrong}</div>
+                  <div className="text-sm text-red-600">Ошибок</div>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <div className="text-lg font-medium mb-2">Точность</div>
+                <Progress 
+                  value={timerResult.total > 0 ? (timerResult.correct / timerResult.total) * 100 : 0} 
+                  className="h-4"
+                />
+                <div className="text-2xl font-bold text-primary mt-2">
+                  {timerResult.total > 0 ? Math.round((timerResult.correct / timerResult.total) * 100) : 0}%
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <Button
+                  onClick={() => handleTopicSelect('mixed', true)}
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold"
+                >
+                  <Icon name="RotateCcw" className="mr-2" />
+                  Попробовать снова
+                </Button>
+                <Button
+                  onClick={() => setSelectedTopic(null)}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  Вернуться к темам
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (selectedTopic && currentTask && selectedGrade) {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50 to-purple-50 p-4 md:p-8">
         <div className="max-w-3xl mx-auto">
@@ -240,9 +370,15 @@ export default function Index() {
                   {grades.find(g => g.id === selectedGrade)?.title}
                 </Badge>
                 <div className="flex items-center gap-4">
+                  {isTimerMode && (
+                    <div className={`flex items-center gap-2 ${timeLeft <= 10 ? 'text-red-600 animate-pulse' : 'text-blue-600'}`}>
+                      <Icon name="Timer" size={20} />
+                      <span className="font-bold text-lg">{minutes}:{seconds.toString().padStart(2, '0')}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <Icon name="Target" className="text-blue-500" size={20} />
-                    <span className="font-medium">{totalTasks} попыток</span>
+                    <span className="font-medium">{totalTasks}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Icon name="Star" className="text-yellow-500" size={20} />
@@ -280,30 +416,38 @@ export default function Index() {
                 ))}
               </div>
 
-              {showExplanation && (
+              {showExplanation && !isTimerMode && (
                 <div className="mt-8 text-center animate-scale-in space-y-4">
-                  {selectedAnswer !== currentTask.correctAnswer && !showHint && (
-                    <Button
-                      onClick={() => setShowHint(true)}
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                    >
-                      <Icon name="Lightbulb" className="mr-2" />
-                      Показать подсказку
-                    </Button>
+                  {selectedAnswer !== currentTask.correctAnswer && (
+                    <>
+                      {!showHint && (
+                        <Button
+                          onClick={() => setShowHint(true)}
+                          variant="outline"
+                          size="lg"
+                          className="w-full"
+                        >
+                          <Icon name="Lightbulb" className="mr-2" />
+                          Показать подсказку
+                        </Button>
+                      )}
+                      
+                      {showHint && (
+                        <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl p-6">
+                          <div className="flex items-start gap-3">
+                            <Icon name="Lightbulb" className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
+                            <p className="text-lg font-medium text-left">{currentTask.hint}</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   
-                  {showHint && selectedAnswer !== currentTask.correctAnswer && (
-                    <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl p-6">
-                      <div className="flex items-start gap-3">
-                        <Icon name="Lightbulb" className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
-                        <p className="text-lg font-medium text-left">{currentTask.hint}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl p-6">
+                  <div className={`rounded-xl p-6 ${
+                    selectedAnswer === currentTask.correctAnswer 
+                      ? 'bg-gradient-to-r from-green-100 to-green-200' 
+                      : 'bg-gradient-to-r from-yellow-100 to-orange-100'
+                  }`}>
                     <p className="text-lg font-medium">{currentTask.explanation}</p>
                   </div>
                   
@@ -348,13 +492,35 @@ export default function Index() {
             </p>
           </header>
 
+          <div className="max-w-6xl mx-auto mb-8">
+            <Card 
+              className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl border-4 border-primary bg-gradient-to-r from-orange-500 via-purple-500 to-blue-500"
+              onClick={() => handleTopicSelect('mixed', true)}
+            >
+              <CardContent className="p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white/20 rounded-xl p-4">
+                      <Icon name="Timer" size={32} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-2xl font-bold mb-1">⚡ Тренажёр 2 минуты</h3>
+                      <p className="text-white/90">Реши максимум заданий за время!</p>
+                    </div>
+                  </div>
+                  <Icon name="ArrowRight" size={32} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {availableTopics.map((topic, index) => (
               <Card
                 key={topic.id}
                 className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-2xl border-4 border-white animate-scale-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => handleTopicSelect(topic.id)}
+                onClick={() => handleTopicSelect(topic.id, false)}
               >
                 <CardContent className="p-6">
                   <div className={`w-full h-32 bg-gradient-to-br ${topic.color} rounded-xl flex items-center justify-center mb-4 shadow-lg`}>

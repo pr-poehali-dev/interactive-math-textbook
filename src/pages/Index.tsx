@@ -57,31 +57,95 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
   
   switch (topicId) {
     case 'addition': {
-      const a = rand(1, grade * 10);
-      const b = rand(1, grade * 10);
-      const correct = a + b;
-      const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
-      return {
-        question: `Сколько будет ${a} + ${b}?`,
-        options: options.map(String),
-        correctAnswer: options.indexOf(correct),
-        explanation: `${a} + ${b} = ${correct}. Молодец! 🎉`,
-        hint: `Попробуй посчитать на пальчиках или нарисуй ${a} кружочков и добавь ещё ${b}!`
-      };
+      const questionTypes = [
+        () => {
+          const a = rand(1, grade * 10);
+          const b = rand(1, grade * 10);
+          const correct = a + b;
+          const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Сколько будет ${a} + ${b}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} + ${b} = ${correct}. Молодец! 🎉`,
+            hint: `Попробуй посчитать на пальчиках или нарисуй ${a} кружочков и добавь ещё ${b}!`
+          };
+        },
+        () => {
+          const a = rand(1, grade * 8);
+          const b = rand(1, grade * 8);
+          const c = rand(1, grade * 5);
+          const correct = a + b + c;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `${a} + ${b} + ${c} = ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} + ${b} + ${c} = ${correct}. Супер! 🌟`,
+            hint: `Сначала сложи ${a} + ${b} = ${a+b}, потом добавь ${c}!`
+          };
+        },
+        () => {
+          const a = rand(5, grade * 10);
+          const result = rand(a + 5, a + grade * 10);
+          const correct = result - a;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `${a} + ? = ${result}`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} + ${correct} = ${result}. Правильно! 🎯`,
+            hint: `Подумай: что нужно добавить к ${a}, чтобы получить ${result}?`
+          };
+        }
+      ];
+      return questionTypes[rand(0, questionTypes.length - 1)]();
     }
     
     case 'subtraction': {
-      const a = rand(grade * 5, grade * 10);
-      const b = rand(1, a);
-      const correct = a - b;
-      const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
-      return {
-        question: `Сколько будет ${a} - ${b}?`,
-        options: options.map(String),
-        correctAnswer: options.indexOf(correct),
-        explanation: `${a} - ${b} = ${correct}. Правильно! ⭐`,
-        hint: `Начни с числа ${a} и отними ${b}. Можешь считать в обратную сторону!`
-      };
+      const questionTypes = [
+        () => {
+          const a = rand(grade * 5, grade * 10);
+          const b = rand(1, a);
+          const correct = a - b;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Сколько будет ${a} - ${b}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} - ${b} = ${correct}. Правильно! ⭐`,
+            hint: `Начни с числа ${a} и отними ${b}. Можешь считать в обратную сторону!`
+          };
+        },
+        () => {
+          const a = rand(grade * 5, grade * 12);
+          const b = rand(1, a / 2);
+          const c = rand(1, (a - b) / 2);
+          const correct = a - b - c;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `${a} - ${b} - ${c} = ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} - ${b} - ${c} = ${correct}. Отлично! 💪`,
+            hint: `Сначала ${a} - ${b} = ${a-b}, потом отними ${c}!`
+          };
+        },
+        () => {
+          const b = rand(5, grade * 8);
+          const correct = rand(b + 5, grade * 12);
+          const a = correct + b;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `${a} - ${b} = ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${a} - ${b} = ${correct}. Умница! 🌈`,
+            hint: `От ${a} убери ${b}!`
+          };
+        }
+      ];
+      return questionTypes[rand(0, questionTypes.length - 1)]();
     }
     
     case 'multiplication': {
@@ -113,51 +177,229 @@ const generateTask = (topicId: string, grade: number): TaskGenerator => {
     }
     
     case 'geometry': {
-      const shapes = [
-        { q: 'Сколько углов у треугольника?', opts: ['2', '3', '4', '5'], correct: 1, exp: 'У треугольника 3 угла! 📐', hint: 'ТРИугольник — в названии есть подсказка!' },
-        { q: 'Сколько углов у квадрата?', opts: ['3', '4', '5', '6'], correct: 1, exp: 'У квадрата 4 угла! 🟦', hint: 'Посмотри на окно или дверь — сколько у них углов?' },
-        { q: 'Сколько сторон у круга?', opts: ['0', '1', '2', '4'], correct: 0, exp: 'У круга нет сторон, только одна линия! ⭕', hint: 'Круг — это замкнутая линия без углов и сторон!' },
-        { q: 'Сколько углов у прямоугольника?', opts: ['2', '3', '4', '5'], correct: 2, exp: 'У прямоугольника 4 угла! 📏', hint: 'Прямоугольник похож на квадрат, только стороны разные!' }
+      const questionTypes = [
+        () => {
+          const shapes = [
+            { name: 'треугольника', count: 3, emoji: '📐' },
+            { name: 'квадрата', count: 4, emoji: '🟦' },
+            { name: 'прямоугольника', count: 4, emoji: '📏' },
+            { name: 'пятиугольника', count: 5, emoji: '⬟' },
+            { name: 'круга', count: 0, emoji: '⭕' }
+          ];
+          const shape = shapes[rand(0, shapes.length - 1)];
+          const options = [shape.count - 1, shape.count, shape.count + 1, shape.count + 2].filter(n => n >= 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Сколько углов у ${shape.name}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(shape.count),
+            explanation: `У ${shape.name} ${shape.count} ${shape.count === 1 ? 'угол' : shape.count < 5 ? 'угла' : 'углов'}! ${shape.emoji}`,
+            hint: shape.count === 0 ? 'Круг — замкнутая линия без углов!' : `Посчитай углы у фигуры!`
+          };
+        },
+        () => {
+          const side = rand(2, 8);
+          const count = rand(3, 6);
+          const perimeter = side * count;
+          const options = [perimeter - 2, perimeter, perimeter + 2, perimeter + 4].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Периметр фигуры с ${count} равными сторонами по ${side} см?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(perimeter),
+            explanation: `${count} × ${side} = ${perimeter} см. Молодец! 📏`,
+            hint: `Сложи все ${count} стороны: ${side} + ${side}...`
+          };
+        },
+        () => {
+          const a = rand(3, 10);
+          const b = rand(3, 10);
+          const area = a * b;
+          const options = [area - 2, area, area + 2, area + 4].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Площадь прямоугольника ${a}×${b} см?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(area),
+            explanation: `${a} × ${b} = ${area} см². Отлично! 🎯`,
+            hint: `Умножь длину ${a} на ширину ${b}!`
+          };
+        }
       ];
-      const shape = shapes[rand(0, shapes.length - 1)];
-      return {
-        question: shape.q,
-        options: shape.opts,
-        correctAnswer: shape.correct,
-        explanation: shape.exp,
-        hint: shape.hint
-      };
+      return questionTypes[rand(0, Math.min(questionTypes.length - 1, grade === 1 ? 0 : questionTypes.length - 1))]();
     }
     
     case 'logic': {
-      const patterns = [
-        { q: 'Продолжи: 🔴 🔵 🔴 🔵 🔴 ?', opts: ['🔴', '🔵', '🟡', '🟢'], correct: 1, exp: 'Цвета чередуются: красный, синий! 🎨', hint: 'Смотри на узор: какой цвет идёт после красного?' },
-        { q: 'Какое число лишнее: 2, 4, 6, 7, 8?', opts: ['2', '4', '7', '8'], correct: 2, exp: '7 — нечётное, остальные чётные! 🧮', hint: 'Все числа делятся на 2 без остатка, кроме одного!' },
-        { q: 'Продолжи: 🟢 🟢 🔵 🟢 🟢 ?', opts: ['🟢', '🔵', '🟡', '🔴'], correct: 1, exp: 'Узор: два зелёных, один синий! 💚', hint: 'Считай: сколько зелёных между синими?' }
+      const questionTypes = [
+        () => {
+          const colors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠'];
+          const patternLength = rand(2, 3);
+          const pattern = [];
+          for (let i = 0; i < patternLength; i++) {
+            pattern.push(colors[rand(0, colors.length - 1)]);
+          }
+          const sequence = [...pattern, ...pattern];
+          const correct = pattern[0];
+          const wrongOptions = colors.filter(c => c !== correct);
+          const options = [correct, ...wrongOptions.slice(0, 3)].sort(() => Math.random() - 0.5);
+          return {
+            question: `Продолжи узор: ${sequence.join(' ')} ?`,
+            options,
+            correctAnswer: options.indexOf(correct),
+            explanation: `Узор повторяется: ${pattern.join(' ')}! 🎨`,
+            hint: `Посмотри на первые ${patternLength} элемента — они повторяются!`
+          };
+        },
+        () => {
+          const isEven = rand(0, 1) === 0;
+          const numbers = [];
+          const start = rand(2, 10);
+          for (let i = 0; i < 4; i++) {
+            numbers.push(isEven ? start + i * 2 : start + i * 2 + 1);
+          }
+          const odd = isEven ? numbers[0] + 1 : numbers[0] - 1;
+          numbers.splice(rand(1, 3), 0, odd);
+          const options = numbers.sort(() => Math.random() - 0.5).slice(0, 4);
+          return {
+            question: `Какое число лишнее: ${numbers.join(', ')}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(odd),
+            explanation: `${odd} — ${isEven ? 'нечётное' : 'чётное'}, остальные ${isEven ? 'чётные' : 'нечётные'}! 🧮`,
+            hint: `Все числа кроме одного делятся на 2 ${isEven ? 'без' : 'с'} остатком!`
+          };
+        },
+        () => {
+          const fruits = ['🍎', '🍊', '🍋', '🍌', '🍉', '🍓'];
+          const correct = fruits[rand(0, fruits.length - 1)];
+          const other = fruits.filter(f => f !== correct)[rand(0, fruits.length - 2)];
+          const count1 = rand(3, 5);
+          const count2 = rand(1, 2);
+          const sequence = [...Array(count1).fill(correct), ...Array(count2).fill(other)];
+          const shuffled = sequence.sort(() => Math.random() - 0.5);
+          const options = [correct, ...fruits.filter(f => f !== correct).slice(0, 3)].sort(() => Math.random() - 0.5);
+          return {
+            question: `Какой элемент встречается чаще: ${shuffled.join(' ')}?`,
+            options,
+            correctAnswer: options.indexOf(correct),
+            explanation: `${correct} встречается ${count1} раз! 🎯`,
+            hint: `Посчитай, сколько раз каждый элемент появляется!`
+          };
+        },
+        () => {
+          const num1 = rand(5, 15);
+          const num2 = rand(num1 + 5, num1 + 15);
+          const num3 = rand(num2 + 5, num2 + 15);
+          const options = [num1, num2, num3, rand(1, num1 - 1)].sort((a, b) => a - b);
+          const correct = options[options.length - 1];
+          return {
+            question: `Какое число самое большое: ${options.join(', ')}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${correct} — самое большое число! 🏆`,
+            hint: `Сравни все числа и найди максимальное!`
+          };
+        },
+        () => {
+          const shapes = ['⭐', '❤️', '🔷', '⬛'];
+          const patternTypes = rand(0, 1);
+          let sequence, correct;
+          if (patternTypes === 0) {
+            const shape1 = shapes[rand(0, shapes.length - 1)];
+            const shape2 = shapes.filter(s => s !== shape1)[rand(0, shapes.length - 2)];
+            sequence = [shape1, shape2, shape1, shape2, shape1];
+            correct = shape2;
+          } else {
+            const shape = shapes[rand(0, shapes.length - 1)];
+            sequence = [shape, shape, shape];
+            correct = shape;
+          }
+          const options = [correct, ...shapes.filter(s => s !== correct).slice(0, 3)].sort(() => Math.random() - 0.5);
+          return {
+            question: `Какая фигура продолжит ряд: ${sequence.join(' ')} ?`,
+            options,
+            correctAnswer: options.indexOf(correct),
+            explanation: `Правильно: ${correct}! Узор повторяется! 🎨`,
+            hint: `Посмотри на закономерность в последовательности!`
+          };
+        },
+        () => {
+          const a = rand(3, 12);
+          const b = rand(2, 8);
+          const operations = [
+            { q: `${a} больше ${b} на`, ans: a - b, exp: `${a} - ${b} = ${a - b}` },
+            { q: `${a} меньше ${a + b} на`, ans: b, exp: `${a + b} - ${a} = ${b}` },
+            { q: `Сумма ${a} и ${b} равна`, ans: a + b, exp: `${a} + ${b} = ${a + b}` }
+          ];
+          const op = operations[rand(0, operations.length - 1)];
+          const correct = op.ans;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `${op.q}?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `${op.exp}! Правильно! 🎯`,
+            hint: `Подумай над словами задачи!`
+          };
+        }
       ];
-      const pattern = patterns[rand(0, patterns.length - 1)];
-      return {
-        question: pattern.q,
-        options: pattern.opts,
-        correctAnswer: pattern.correct,
-        explanation: pattern.exp,
-        hint: pattern.hint
-      };
+      return questionTypes[rand(0, questionTypes.length - 1)]();
     }
     
     case 'patterns': {
-      const step = rand(1, 3);
-      const start = rand(1, 10);
-      const seq = [start, start + step, start + step * 2, start + step * 3];
-      const correct = start + step * 4;
-      const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
-      return {
-        question: `Какое число продолжит ряд: ${seq.join(', ')}, ?`,
-        options: options.map(String),
-        correctAnswer: options.indexOf(correct),
-        explanation: `Каждое число на ${step} больше: ${correct}! 📊`,
-        hint: `Посмотри, на сколько увеличивается каждое число: ${seq[1]}-${seq[0]}=${step}`
-      };
+      const questionTypes = [
+        () => {
+          const step = rand(1, grade === 1 ? 2 : 5);
+          const start = rand(1, 10);
+          const seq = [start, start + step, start + step * 2, start + step * 3];
+          const correct = start + step * 4;
+          const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Какое число продолжит ряд: ${seq.join(', ')}, ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `Каждое число на ${step} больше: ${correct}! 📊`,
+            hint: `Посмотри, на сколько увеличивается каждое число: ${seq[1]}-${seq[0]}=${step}`
+          };
+        },
+        () => {
+          const step = rand(1, grade === 1 ? 2 : 4);
+          const start = rand(15, 30);
+          const seq = [start, start - step, start - step * 2, start - step * 3];
+          const correct = start - step * 4;
+          const options = [correct - 1, correct, correct + 1, correct + 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Продолжи ряд: ${seq.join(', ')}, ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `Числа уменьшаются на ${step}: ${correct}! 📉`,
+            hint: `Каждое число на ${step} меньше предыдущего!`
+          };
+        },
+        () => {
+          const mult = rand(2, grade === 1 ? 2 : 3);
+          const seq = [mult, mult * 2, mult * 3, mult * 4];
+          const correct = mult * 5;
+          const options = [correct - mult, correct, correct + mult, correct + mult * 2].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Найди закономерность: ${seq.join(', ')}, ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `Это таблица умножения на ${mult}: ${correct}! ✖️`,
+            hint: `Каждое число — это ${mult} умножить на что-то!`
+          };
+        },
+        () => {
+          const start = rand(1, 5);
+          const seq = [start, start + 1, start + 3, start + 6];
+          const correct = start + 10;
+          const options = [correct - 2, correct - 1, correct, correct + 1].filter(n => n > 0).sort(() => Math.random() - 0.5);
+          return {
+            question: `Какое число следующее: ${seq.join(', ')}, ?`,
+            options: options.map(String),
+            correctAnswer: options.indexOf(correct),
+            explanation: `Разница растёт: +1, +2, +3, +4. Ответ: ${correct}! 🎯`,
+            hint: `Посмотри на разницу между числами: она увеличивается!`
+          };
+        }
+      ];
+      return questionTypes[rand(0, grade === 1 ? 1 : questionTypes.length - 1)]();
     }
     
     case 'mixed': {
